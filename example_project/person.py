@@ -2,6 +2,8 @@
 The person class
 """
 
+import util
+
 
 class Person:
     """
@@ -19,4 +21,6 @@ class Person:
         return f"Hi, my name is {self.name} and I am {self.age} years old."
 
     def __repr__(self):
-        return f"[name': {self.name} 'age': {self.age}]"
+        return util.format_repr(
+            self.__class__.__qualname__, name=self.name, age=self.age
+        )

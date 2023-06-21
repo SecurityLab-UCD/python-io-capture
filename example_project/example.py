@@ -2,6 +2,8 @@
 Example code to capture IO from
 """
 
+import util
+
 
 def add(addend_1, addend_2):
     """
@@ -51,18 +53,6 @@ class MyClass:
         """
         return value**2
 
-    def my_method_v2(self, value):
-        """
-        Example method to capture inputs and outputs.
-
-        Args:
-            value: A value.
-
-        Returns:
-            The value squared.
-        """
-        return value**3
-
     @classmethod
     def class_method_without_decorator(cls):
         """
@@ -72,7 +62,7 @@ class MyClass:
         print("Class attribute:", cls)
 
     def __repr__(self):
-        return "[]"
+        return util.format_repr(self.__class__.__qualname__)
 
 
 def multiply(num_1, num_2):

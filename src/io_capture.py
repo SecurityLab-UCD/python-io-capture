@@ -41,7 +41,7 @@ def decorate_module(module_path):
     """
 
     try:
-        module = importlib.import_module(module_path)
+        module = importlib.import_module(module_path, package="..")
 
         for name, value in inspect.getmembers(
             module,

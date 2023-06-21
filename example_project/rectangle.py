@@ -2,6 +2,8 @@
 The rectangle class which has height & width
 """
 
+import util
+
 
 class Rectangle:
     """
@@ -25,7 +27,9 @@ class Rectangle:
         return 2 * (self.width + self.height)
 
     def __repr__(self):
-        return f"[width': {self.width} 'height': {self.height}]"
+        return util.format_repr(
+            self.__class__.__qualname__, width=self.width, height=self.height
+        )
 
     class NestedClass:
         """
@@ -50,4 +54,4 @@ class Rectangle:
             return len(self.data) + 1
 
         def __repr__(self):
-            return f"[data': {self.data}]"
+            return util.format_repr(self.__class__.__qualname__, data=self.data)
