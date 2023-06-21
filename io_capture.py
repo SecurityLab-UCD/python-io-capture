@@ -74,6 +74,9 @@ def decorate_object(obj):
             if inspect.isfunction(attr) or inspect.ismethod(attr):
                 setattr(obj, name, record_calls(attr))
 
+            elif inspect.isclass(attr) and not name.startswith("__"):
+                decorate_object(attr)
+
     return obj
 
 
@@ -100,13 +103,10 @@ def record_calls(func):
             The output of the wrapped function.
         """
 
-        # Get the function arguments and their names
-        args_names = inspect.getfullargspec(func).args
-
         # Create a dictionary to store inputs and outputs
         call_data = {
             "function": func.__qualname__,
-            "inputs": flatten(args_names, args),
+            "inputs": process_args(func, *args, **kwargs),
             "output": func(*args, **kwargs),
         }
 
@@ -118,12 +118,26 @@ def record_calls(func):
     return wrapper
 
 
-def flatten(args_names, *args):
+def process_args(orig_func, *args, **kwargs):
     """
     Flattens composite args (if applicable)
     """
+
     processed = {}
-    for i, arg in enumerate(args[0]):
+
+    # Get the function arguments and their names
+    args_names = inspect.getfullargspec(orig_func).args
+
+    # Handle *args and **kwargs
+    if not args_names:
+        if len(args) > 1:
+            processed["*args"] = args
+            processed.update(kwargs)
+        return processed
+
+    processed: dict = {name: "[OPTIONAL ARG ABSENT]" for name in args_names}
+
+    for i, arg in enumerate(args):
         if isinstance(arg, (list, set)):
             processed[args_names[i]] = list(arg)
         elif isinstance(arg, dict):

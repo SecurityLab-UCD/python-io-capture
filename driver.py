@@ -4,14 +4,16 @@ The driver code for IO capture
 
 import io_capture
 
-modules = io_capture.decorate_directory_modules("example_projects")
-example = modules["example"]
+for key, value in io_capture.decorate_directory_modules("example_projects").items():
+    globals()[key] = value
 
 
 def perform_calls():
     """
     Perform IO-capturing calls
     """
+    # pylint: disable=E0602
+    # The line above is for dynamic var generation err handling (research code only!)
 
     example.sum_v3({1: "one", 2: "two", 3: "three"})
     example.sum_v4({1, 2, 3, 4, 5, 6.6, -7.7})
@@ -23,13 +25,13 @@ def perform_calls():
     example.add(2, 3)
     example.multiply(4, 5)
 
-    person1 = example.Person("Alice", 25)
-    person2 = example.Person("Bob", 30)
+    person1 = person.Person("Alice", 25)
+    person2 = person.Person("Bob", 30)
     person1.introduce()
     person2.introduce()
 
-    rectangle1 = example.Rectangle(4, 5)
-    rectangle2 = example.Rectangle(3, 6)
+    rectangle1 = rectangle.Rectangle(4, 5)
+    rectangle2 = rectangle.Rectangle(3, 6)
     rectangle1.area()
     rectangle2.perimeter()
 
@@ -40,17 +42,32 @@ def perform_calls():
     # # Function calls with dictionaries
     dictionary = {"name": "Alice", "age": 25}
     example.apply_operation(
-        lambda x, y: example.Person(**x).introduce(), dictionary, None
+        lambda x, y: person.Person(**x).introduce(), dictionary, None
     )
 
-    example.foo_baz(5)
+    example.foo_baz(2)
 
     obj = example.MyClass()
     obj.my_method(5)
 
+    example.sum_v5(1, 2, 3, 4, 5, 6, key=100, keykey=200, keykeykey=300)
+    example.do_nothing_v1()
+    example.do_something_v1()
+    example.do_something_v2(1)
+    example.do_something_v2(1, -1)
+
+    example.apply_operation(example.add, 200, 300)
+
+    rectangle1 = rectangle.Rectangle(100, 1000)
+    nested_class1 = rectangle1.NestedClass([1, 2, 3])
+    nested_class2 = rectangle2.NestedClass([4, 5, 6])
+    nested_class1.process_data()
+    nested_class2.process_data()
+
 
 # capture IO from the calls
 perform_calls()
+
 
 # Print the recorded calls
 for i, call in enumerate(io_capture.calls):

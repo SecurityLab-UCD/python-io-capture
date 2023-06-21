@@ -3,7 +3,6 @@ Example code to capture IO from
 """
 
 
-# Example function
 def add(addend_1, addend_2):
     """
     Function that adds two numbers.
@@ -18,7 +17,6 @@ def add(addend_1, addend_2):
     return addend_1 + addend_2
 
 
-# Another example function
 def foo_baz(number):
     """
     A toy function to have its input and outputs captured.
@@ -31,55 +29,6 @@ def foo_baz(number):
     """
     if number > 1:
         foo_baz(number - 1)
-
-        # Example class
-
-
-class Rectangle:
-    """
-    Represents a rectangle
-    """
-
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-
-    def area(self):
-        """
-        Return the area
-        """
-        return self.width * self.height
-
-    def perimeter(self):
-        """
-        Return the perimeter
-        """
-        return 2 * (self.width + self.height)
-
-    def __repr__(self):
-        return f"[width': {self.width} 'height': {self.height}]"
-
-    class NestedClass:
-        """
-        Example Nested Class
-        """
-
-        def __init__(self, data):
-            self.data = data
-
-        def process_data(self):
-            """
-            A toy function
-            """
-
-            return len(self.data)
-
-        def process_data_v2(self):
-            """
-            A toy function
-            """
-
-            return len(self.data) + 1
 
 
 class MyClass:
@@ -148,25 +97,6 @@ def apply_operation(operation, arg_1, arg_2):
     return operation(arg_1, arg_2)
 
 
-class Person:
-    """
-    Represents a person
-    """
-
-    def __init__(self, name, age):
-        self.name = name
-        self.age = age
-
-    def introduce(self):
-        """
-        Produce a short intro.
-        """
-        return f"Hi, my name is {self.name} and I am {self.age} years old."
-
-    def __repr__(self):
-        return f"[name': {self.name} 'age': {self.age}]"
-
-
 def sum_v2(args):
     """
     sum numbers
@@ -207,3 +137,55 @@ def sum_v4(set_arg):
         running_sum += elem
 
     return running_sum
+
+
+def sum_v5(*args, **kwargs):
+    """
+    sum numbers
+
+    Args:
+        args: numbers to sum
+    """
+
+    running_sum = ""
+
+    for elem in args:
+        running_sum += "0" + str(elem)
+
+    for elem in kwargs.items():
+        running_sum += str(elem[0]) + str(elem[1])
+
+    return running_sum
+
+
+def do_nothing_v1():
+    """
+    Does nothing; there to test edge case
+
+    Returns:
+        None
+
+    """
+    return None
+
+
+def do_something_v1():
+    """
+    Does something; there to test edge case
+
+    Returns:
+        None
+
+    """
+    return 1
+
+
+def do_something_v2(addend, addend_2=100):
+    """
+    Does something; there to test edge case
+
+    Returns:
+        None
+
+    """
+    return addend + addend_2
