@@ -1,16 +1,85 @@
 """
-Toy / "Hello, World!" program to capture function calls' IO while "conforming" to PEP-8.
+PEP-8 Conforming program to capture calls' IO across functions/class methods/inner classes in all
+    the files in the 'example_projects' DIR.
 """
 
+import glob
+import os
+import importlib
 import inspect
 
+# const defining filename pattern for a prospective target file
+FILE_PATTERN = "*.py"
 # List to store all the recorded function calls
 calls = []
 
 
+def decorate_directory_modules(target_directory):
+    """
+    Decorate all modules defined in files in the specified DIR.
+
+    Args:
+        target_directory: path to the DIR w/ all the modules
+    """
+
+    modules = {}
+
+    for file_path in glob.glob(os.path.join(target_directory, FILE_PATTERN)):
+        module_name = os.path.splitext(os.path.basename(file_path))[0]
+
+        modules[module_name] = decorate_module(f"{target_directory}.{module_name}")
+
+    return modules
+
+
+def decorate_module(module_path):
+    """
+    Decorate module w/ the given path
+
+    Args:
+        module_path: path to the module to decorate
+    """
+
+    try:
+        module = importlib.import_module(module_path)
+
+        for name, value in inspect.getmembers(
+            module,
+            predicate=lambda e: inspect.isfunction(e) or inspect.isclass(e),
+        ):
+            module.__setattr__(name, decorate_object(value))  # pylint: disable=C2801
+
+    except ImportError as exc:
+        raise ImportError("Error Importing Module") from exc
+
+    return module
+
+
+def decorate_object(obj):
+    """
+    Apply the decorator to the given objects.
+
+    Args:
+        objects: A list of objects to decorate.
+    """
+
+    if inspect.isfunction(obj):
+        return record_calls(obj)
+    if inspect.isclass(obj):
+        for name, attr in inspect.getmembers(obj):
+            if name in ("__repr__", "__str__"):
+                continue
+
+            # Instance vs. Class Method
+            if inspect.isfunction(attr) or inspect.ismethod(attr):
+                setattr(obj, name, record_calls(attr))
+
+    return obj
+
+
 def record_calls(func):
     """
-    Decorator function to record inputs and outputs of a function call.
+    Decorator function to record IO of a function call.
 
     Args:
         func: The function to be decorated.
@@ -28,7 +97,7 @@ def record_calls(func):
             **kwargs: Arbitrary keyword arguments.
 
         Returns:
-            The output of the wrapperd function.
+            The output of the wrapped function.
         """
 
         # Get the function arguments and their names
@@ -36,13 +105,10 @@ def record_calls(func):
 
         # Create a dictionary to store inputs and outputs
         call_data = {
-            "function": func.__name__,
-            "inputs": dict(zip(args_names, args)),
-            "output": None,
+            "function": func.__qualname__,
+            "inputs": flatten(args_names, args),
+            "output": func(*args, **kwargs),
         }
-
-        # Call the function and record the output
-        call_data["output"] = func(*args, **kwargs)
 
         # Store the call data
         calls.append(call_data)
@@ -52,68 +118,17 @@ def record_calls(func):
     return wrapper
 
 
-def apply_decorator_to_all_functions():
+def flatten(args_names, *args):
     """
-    Apply the decorator to all functions in the project.
+    Flattens composite args (if applicable)
     """
-    global calls  # pylint: disable=C0103, W0603
+    processed = {}
+    for i, arg in enumerate(args[0]):
+        if isinstance(arg, (list, set)):
+            processed[args_names[i]] = list(arg)
+        elif isinstance(arg, dict):
+            processed[args_names[i]] = list(zip(arg.keys(), arg.values()))
+        else:
+            processed[args_names[i]] = arg
 
-    calls = []  # Reset the list of recorded calls
-
-    # Get all the global variables
-    global_variables = globals()
-
-    # Iterate through all variables and apply the decorator to functions
-    for key, value in global_variables.items():
-        if inspect.isfunction(value):
-            global_variables[key] = record_calls(value)
-
-
-# Example function
-def add(addend_1, addend_2):
-    """
-    Function that adds two numbers.
-
-    Args:
-        addend_1: The first number.
-        addend_2: The second number.
-
-    Returns:
-        The sum of the two numbers.
-    """
-    return addend_1 + addend_2
-
-
-# Another example function
-def foo_baz(number):
-    """
-    A toy function to have its input and outputs captured.
-
-    Args:
-        number: The number to recurse on.
-
-    Returns:
-        None.
-    """
-    if number > 1:
-        foo_baz(number - 1)
-
-
-# README: Make sure to include all function definitions prior to applying decorator
-# Apply the decorator to all functions in the project
-apply_decorator_to_all_functions()
-
-# Perform function calls
-add(2, 3)
-add(4, 5)
-add(6, 7)
-
-foo_baz(10)
-
-# Print the recorded calls
-for i, call in enumerate(calls):
-    print(f"Call {i+1}:")
-    print("Function:", call["function"])
-    print("Inputs:", call["inputs"])
-    print("Output:", call["output"])
-    print()
+    return processed
