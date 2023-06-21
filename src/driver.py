@@ -5,11 +5,12 @@ The driver code for IO capture
 import sys
 from os.path import abspath, dirname
 
+import io_capture
+
 # Adjust the path to include the sibling directory
 sibling_dir = abspath(dirname(dirname(__file__)))
 sys.path.append(sibling_dir)
 
-import io_capture
 
 # decorating all the modules
 for key, value in io_capture.decorate_directory_modules("example_project").items():
