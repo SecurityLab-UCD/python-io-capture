@@ -36,8 +36,10 @@ def perform_calls():
 
     person1 = person.Person("Alice", 25)
     person2 = person.Person("Bob", 30)
+    student1 = person.Student("Tom", 23)
     person1.introduce()
     person2.introduce()
+    student1.introduce()
 
     rectangle1 = rectangle.Rectangle(4, 5)
     rectangle2 = rectangle.Rectangle(3, 6)
