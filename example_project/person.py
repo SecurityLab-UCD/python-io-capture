@@ -27,5 +27,9 @@ class Person:
 
 
 class Student(Person):
+    def __init__(self, name, age, sid):
+        Person.__init__(self, name, age)
+        self.id = sid
+
     def introduce(self):
         return f"{super().introduce()} , and I am a student in UC Davis."
