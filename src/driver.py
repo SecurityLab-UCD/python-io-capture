@@ -4,7 +4,7 @@ The driver code for IO capture
 
 import sys
 from os.path import abspath, dirname
-
+from example_project import example, person, rectangle
 import io_capture
 
 # Adjust the path to include the sibling directory
@@ -40,6 +40,11 @@ def perform_calls():
     person1.introduce()
     person2.introduce()
     student1.introduce()
+
+    person_list = [person1, person2, student1]
+
+    for p in person_list:
+        p.introduce()
 
     rectangle1 = rectangle.Rectangle(4, 5)
     rectangle2 = rectangle.Rectangle(3, 6)
