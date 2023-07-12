@@ -19,6 +19,14 @@ def add(addend_1, addend_2):
     return addend_1 + addend_2
 
 
+def foo():
+    def bar():
+        pass
+
+    bar()
+    pass
+
+
 def foo_baz(number):
     """
     A toy function to have its input and outputs captured.
@@ -146,6 +154,19 @@ def sum_v5(*args, **kwargs):
         running_sum += str(elem[0]) + str(elem[1])
 
     return running_sum
+
+
+def sum_v6(*args):
+    """
+    sum numbers
+
+    Args:
+        args: numbers to sum
+    """
+
+    args = sum_v2(args)
+
+    return sum(args)
 
 
 def do_nothing_v1():
