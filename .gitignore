@@ -25,3 +25,8 @@ env/
 *.bak
 *.swp
 *~
+
+# projs IO
+outputs/
+
+.DS_STORE

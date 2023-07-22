@@ -2,6 +2,7 @@
 The person class
 """
 
+import example
 import util
 
 
@@ -26,10 +27,19 @@ class Person:
         )
 
 
-class Student(Person):
-    def __init__(self, name, age, sid):
-        Person.__init__(self, name, age)
-        self.id = sid
+def main():
+    """
+    The Driver Code
+    """
+    # Function calls with dictionaries
+    dictionary = {"name": "Alice", "age": 25}
+    example.apply_operation(lambda x, y: Person(**x).introduce(), dictionary, None)
 
-    def introduce(self):
-        return f"{super().introduce()} , and I am a student in UC Davis."
+    person1 = Person("Alice", 25)
+    person2 = Person("Bob", 30)
+    person1.introduce()
+    person2.introduce()
+
+
+if __name__ == "__main__":
+    main()

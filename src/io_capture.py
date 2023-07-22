@@ -5,8 +5,9 @@ PEP-8 Conforming program to capture calls' IO across functions/class methods/inn
 
 import glob
 import os
-import importlib
+import importlib.util
 import inspect
+import sys
 
 # const defining filename pattern for a prospective target file
 FILE_PATTERN = "*.py"
@@ -27,12 +28,12 @@ def decorate_directory_modules(target_directory):
     for file_path in glob.glob(os.path.join(target_directory, FILE_PATTERN)):
         module_name = os.path.splitext(os.path.basename(file_path))[0]
 
-        modules[module_name] = decorate_module(f"{target_directory}.{module_name}")
+        modules[module_name] = decorate_module(target_directory, module_name)
 
     return modules
 
 
-def decorate_module(module_path):
+def decorate_module(target_directory, module_name):
     """
     Decorate module w/ the given path
 
@@ -41,7 +42,15 @@ def decorate_module(module_path):
     """
 
     try:
-        module = importlib.import_module(module_path, package="..")
+        # including the directory in the scope for local imports to work
+        sys.path.append(target_directory)
+        # FIXME: research the original version
+        spec = importlib.util.spec_from_file_location(
+            module_name, f"./{target_directory}/{module_name}.py"
+        )
+        module = importlib.util.module_from_spec(spec)
+        sys.modules[module_name] = module
+        spec.loader.exec_module(module)
 
         for name, value in inspect.getmembers(
             module,
