@@ -19,14 +19,6 @@ def add(addend_1, addend_2):
     return addend_1 + addend_2
 
 
-def foo():
-    def bar():
-        pass
-
-    bar()
-    pass
-
-
 def foo_baz(number):
     """
     A toy function to have its input and outputs captured.
@@ -156,19 +148,6 @@ def sum_v5(*args, **kwargs):
     return running_sum
 
 
-def sum_v6(*args):
-    """
-    sum numbers
-
-    Args:
-        args: numbers to sum
-    """
-
-    args = sum_v2(args)
-
-    return sum(args)
-
-
 def do_nothing_v1():
     """
     Does nothing; there to test edge case
@@ -200,3 +179,39 @@ def do_something_v2(addend, addend_2=100):
 
     """
     return addend + addend_2
+
+
+def main():
+    """
+    The Driver Code
+    """
+    sum_v3({1: "one", 2: "two", 3: "three"})
+    sum_v4({1, 2, 3, 4, 5, 6.6, -7.7})
+
+    sum_v2([1.2, 2, 3.4, 5.5, 3, -1.1])
+    sum_v2({1.2, 2, 3.4, 5.5, 3, -1.1})
+
+    add(2, 5)
+    add(2, 3)
+    multiply(4, 5)
+
+    # Function calls with functions as parameters
+    apply_operation(add, 200, 300)
+    apply_operation(multiply, 4000, 5000)
+
+    foo_baz(2)
+
+    obj = MyClass()
+    obj.my_method(5)
+
+    sum_v5(1, 2, 3, 4, 5, 6, key=100, keykey=200, keykeykey=300)
+    do_nothing_v1()
+    do_something_v1()
+    do_something_v2(1)
+    do_something_v2(1, -1)
+
+    apply_operation(add, 200, 300)
+
+
+if __name__ == "__main__":
+    main()

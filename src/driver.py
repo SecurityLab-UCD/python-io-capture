@@ -3,92 +3,72 @@ The driver code for IO capture
 """
 
 import sys
+import os
 from os.path import abspath, dirname
-from example_project import example, person, rectangle
+
 import io_capture
 
-# Adjust the path to include the sibling directory
-sibling_dir = abspath(dirname(dirname(__file__)))
-sys.path.append(sibling_dir)
+PROJECTS_DIRECTORY = "example_projects"
+OUTPUTS_DIRECTORY = "outputs"
 
 
-# decorating all the modules
-for key, value in io_capture.decorate_directory_modules("example_project").items():
-    globals()[key] = value
-
-
-def perform_calls():
+def record_output(module_name, outputs_path):
     """
-    Perform IO-capturing calls
+    Records IO from call stack to 'module_name' in 'outputs_path'; the directory must be pre-created
     """
-    # pylint: disable=E0602
-    # The line above is for dynamic var generation err handling (research code only!)
+    output = ""
+    for i, call in enumerate(io_capture.calls):
+        output += f"Call {i+1}:\n"
+        output += f"Function: {call['function']}\n"
+        output += f"Inputs:   {call['inputs']}\n"
+        output += f"Output:   {call['output']}\n"
+        output += "\n"
 
-    example.sum_v3({1: "one", 2: "two", 3: "three"})
-    example.sum_v4({1, 2, 3, 4, 5, 6.6, -7.7})
+    # resetting {the call stack afte}r each proj
+    io_capture.calls = []
 
-    example.sum_v2([1.2, 2, 3.4, 5.5, 3, -1.1])
-    example.sum_v2({1.2, 2, 3.4, 5.5, 3, -1.1})
-
-    example.add(2, 5)
-    example.add(2, 3)
-    example.multiply(4, 5)
-
-    person1 = person.Person("Alice", 25)
-    person2 = person.Person("Bob", 30)
-    student1 = person.Student("Tom", 23)
-    person1.introduce()
-    person2.introduce()
-    student1.introduce()
-
-    person_list = [person1, person2, student1]
-
-    for p in person_list:
-        p.introduce()
-
-    rectangle1 = rectangle.Rectangle(4, 5)
-    rectangle2 = rectangle.Rectangle(3, 6)
-    rectangle1.area()
-    rectangle2.perimeter()
-
-    # # Function calls with functions as parameters
-    example.apply_operation(example.add, 200, 300)
-    example.apply_operation(example.multiply, 4000, 5000)
-
-    # # Function calls with dictionaries
-    dictionary = {"name": "Alice", "age": 25}
-    example.apply_operation(
-        lambda x, y: person.Person(**x).introduce(), dictionary, None
-    )
-
-    example.foo_baz(2)
-
-    obj = example.MyClass()
-    obj.my_method(5)
-
-    example.sum_v5(1, 2, 3, 4, 5, 6, key=100, keykey=200, keykeykey=300)
-    example.do_nothing_v1()
-    example.do_something_v1()
-    example.do_something_v2(1)
-    example.do_something_v2(1, -1)
-
-    example.apply_operation(example.add, 200, 300)
-
-    rectangle1 = rectangle.Rectangle(100, 1000)
-    nested_class1 = rectangle1.NestedClass([1, 2, 3])
-    nested_class2 = rectangle2.NestedClass([4, 5, 6])
-    nested_class1.process_data()
-    nested_class2.process_data()
+    # output the recorded calls
+    with open(os.path.join(outputs_path, module_name), "w", encoding="utf-8") as file:
+        file.write(output)
 
 
-# capture IO from the calls
-perform_calls()
+def main():
+    """
+    Starts the decorating machinery
+    """
+    # adjusting the path to include sibling directories via the root path
+    root_path = abspath(dirname(dirname(__file__)))
+    sys.path.append(root_path)
+
+    # preparing the paths for the projects' directory
+    projs_path = os.path.join(root_path, PROJECTS_DIRECTORY)
+    projs = [
+        item
+        for item in os.listdir(projs_path)
+        if os.path.isdir(os.path.join(projs_path, item))
+    ]
+
+    # create outputs DIR if necessary
+    outputs_path = os.path.join(root_path, OUTPUTS_DIRECTORY)
+    if not os.path.exists(outputs_path):
+        os.makedirs(outputs_path)
+
+    # iterating over each project
+    for proj in projs:
+        # iterating over each file in the project & decorating it
+        for mod_name, module in io_capture.decorate_directory_modules(
+            f"{PROJECTS_DIRECTORY}/{proj}"
+        ).items():
+            try:
+                # run the driver code function calls
+                module.main()
+
+                # module name - record the IO in an output file
+                record_output(f"{proj}_{mod_name}.txt", outputs_path)
+
+            except AttributeError as exc:
+                print(f"{exc} - treating it as a util module")
 
 
-# Print the recorded calls
-for i, call in enumerate(io_capture.calls):
-    print(f"Call {i+1}:")
-    print("Function:", call["function"])
-    print("Inputs:", call["inputs"])
-    print("Output:", call["output"])
-    print()
+if __name__ == "__main__":
+    main()

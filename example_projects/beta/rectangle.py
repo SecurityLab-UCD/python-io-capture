@@ -55,3 +55,19 @@ class Rectangle:
 
         def __repr__(self):
             return util.format_repr(self.__class__.__qualname__, data=self.data)
+
+
+def main():
+    """
+    The Driver Code
+    """
+    rectangle1 = Rectangle(4, 5)
+    rectangle2 = Rectangle(3, 6)
+    rectangle1.area()
+    rectangle2.perimeter()
+
+    rectangle1 = Rectangle(100, 1000)
+    nested_class1 = rectangle1.NestedClass([1, 2, 3])
+    nested_class2 = rectangle2.NestedClass([4, 5, 6])
+    nested_class1.process_data()
+    nested_class2.process_data()
