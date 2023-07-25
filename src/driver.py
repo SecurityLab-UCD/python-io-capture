@@ -4,6 +4,7 @@ The driver code for IO capture
 
 import sys
 import os
+import logging
 from os.path import abspath, dirname
 
 import io_capture
@@ -36,6 +37,9 @@ def main():
     """
     Starts the decorating machinery
     """
+    # set the relevant logging level
+    logging.basicConfig(level=logging.WARNING)
+
     # adjusting the path to include sibling directories via the root path
     root_path = abspath(dirname(dirname(__file__)))
     sys.path.append(root_path)
@@ -67,7 +71,7 @@ def main():
                 record_output(f"{proj}_{mod_name}.txt", outputs_path)
 
             except AttributeError as exc:
-                print(f"{exc} - treating it as a util module")
+                logging.info("%s - treating it as a util module", exc)
 
 
 if __name__ == "__main__":
