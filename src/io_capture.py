@@ -44,9 +44,9 @@ def decorate_module(target_directory, module_name):
     try:
         # including the directory in the scope for local imports to work
         sys.path.append(target_directory)
-        # FIXME: research the original version
+
         spec = importlib.util.spec_from_file_location(
-            module_name, f"./{target_directory}/{module_name}.py"
+            module_name, os.path.abspath(f"./{target_directory}/{module_name}.py")
         )
         module = importlib.util.module_from_spec(spec)
         sys.modules[module_name] = module
