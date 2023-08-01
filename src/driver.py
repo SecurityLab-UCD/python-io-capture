@@ -68,7 +68,7 @@ def main():
                 module.main()
 
                 # module name - record the IO in an output file
-                record_output(f"{proj}_{mod_name}.txt", outputs_path)
+                record_output(f"{proj}?{mod_name}.txt", outputs_path)
 
             except AttributeError as exc:
                 logging.info("%s - treating it as a util module", exc)
