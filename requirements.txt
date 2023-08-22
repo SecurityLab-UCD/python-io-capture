@@ -1,0 +1,5 @@
+
+# image-to-sound-python
+pillow>=10.0.0
+gTTS>=2.0.1
+pytesseract>=0.2.4
