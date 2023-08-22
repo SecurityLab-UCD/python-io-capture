@@ -48,7 +48,7 @@ def decorate_object(obj):
         return record_calls(obj)
     if inspect.isclass(obj):
         for name, attr in inspect.getmembers(obj):
-            if name in ("__repr__", "__str__"):
+            if is_property(name):
                 continue
 
             # Instance vs. Class Method
@@ -85,11 +85,24 @@ def record_calls(func):
         """
         rnt = func(*args, **kwargs)
 
+        try:
+            rnt_str = str(rnt)
+        except:
+            rnt_str = "result not printable"
+
+        # some function may not have attribute __qualname__
+        # for example, numpy.random.rand
+        func_name = (
+            func.__qualname__ if hasattr(func, "__qualname__") else func.__name__
+        )
+        if is_property(func_name):
+            return rnt
+
         # Create a dictionary to store inputs and outputs
         call_data = {
-            "function": func.__qualname__,
+            "function": func_name,
             "inputs": process_args(func, *args, **kwargs),
-            "output": str(rnt),
+            "output": rnt_str,
         }
 
         # Store the call data
@@ -108,7 +121,10 @@ def process_args(orig_func, *args, **kwargs):
     processed = {}
 
     # Get the function arguments and their names
-    args_names = inspect.getfullargspec(orig_func).args
+    try:
+        args_names = inspect.getfullargspec(orig_func).args
+    except TypeError:
+        args_names = ["arg" + str(i) for i in range(len(args))]
 
     # Handle *args and **kwargs
     if not args_names:
@@ -131,3 +147,7 @@ def process_args(orig_func, *args, **kwargs):
         processed[args_names[i]] = str(record_arg)
 
     return processed
+
+
+def is_property(name):
+    return name.startswith("__") and name.endswith("__")
