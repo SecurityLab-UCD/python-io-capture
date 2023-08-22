@@ -30,3 +30,5 @@ env/
 outputs/
 
 .DS_STORE
+
+*.json
