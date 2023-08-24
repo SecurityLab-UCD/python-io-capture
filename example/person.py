@@ -2,8 +2,8 @@
 The person class
 """
 
-import example
-import util
+from example import example
+from example import util
 
 
 class Person:

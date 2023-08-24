@@ -2,7 +2,7 @@
 Example code to capture IO from
 """
 
-import util
+from example import util
 
 
 def add(addend_1, addend_2):

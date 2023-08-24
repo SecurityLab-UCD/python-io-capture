@@ -17,7 +17,7 @@ def image_to_sound(path_to_image):
         sound.save("sound.mp3")
         return True
     except Exception as bug:
-        print("The bug thrown while excuting the code\n", bug)
+        print("The bug thrown while executing the code\n", bug)
         return
 
 

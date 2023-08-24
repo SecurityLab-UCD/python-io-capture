@@ -3,64 +3,39 @@ PEP-8 Conforming program to capture calls' IO across functions/class methods/inn
     the files in the 'example_projects' DIR.
 """
 
-import glob
-import os
-import importlib.util
 import inspect
-import sys
+import json
 
-# const defining filename pattern for a prospective target file
-FILE_PATTERN = "*.py"
 # List to store all the recorded function calls
 calls = []
 
 
-def decorate_directory_modules(target_directory):
+def dump_records(file_path):
+    json.dump(calls, open(file_path, "w"), indent=4)
+    calls.clear()
+
+
+def decorate_module(module):
     """
-    Decorate all modules defined in files in the specified DIR.
+    Decorate a imported module
 
     Args:
-        target_directory: path to the DIR w/ all the modules
+        module: the module to be decorated
     """
 
-    modules = {}
+    instrumented = set()
+    for name, value in inspect.getmembers(
+        module,
+        predicate=lambda e: inspect.isfunction(e) or inspect.isclass(e),
+    ):
+        module.__setattr__(name, decorate_object(value))  # pylint: disable=C2801
+        instrumented.add(name)
 
-    for file_path in glob.glob(os.path.join(target_directory, FILE_PATTERN)):
-        module_name = os.path.splitext(os.path.basename(file_path))[0]
-
-        modules[module_name] = decorate_module(target_directory, module_name)
-
-    return modules
-
-
-def decorate_module(target_directory, module_name):
-    """
-    Decorate module w/ the given path
-
-    Args:
-        module_path: path to the module to decorate
-    """
-
-    try:
-        # including the directory in the scope for local imports to work
-        sys.path.append(target_directory)
-
-        spec = importlib.util.spec_from_file_location(
-            module_name, os.path.abspath(f"./{target_directory}/{module_name}.py")
-        )
-        module = importlib.util.module_from_spec(spec)
-        sys.modules[module_name] = module
-        spec.loader.exec_module(module)
-
-        for name, value in inspect.getmembers(
-            module,
-            predicate=lambda e: inspect.isfunction(e) or inspect.isclass(e),
-        ):
-            module.__setattr__(name, decorate_object(value))  # pylint: disable=C2801
-
-    except ImportError as exc:
-        raise ImportError("Error Importing Module") from exc
-
+    # instrumented functions that are not covered by inspect.getmembers
+    for attr_name in dir(module):
+        attr = getattr(module, attr_name)
+        if callable(attr) and attr_name not in instrumented:
+            setattr(module, attr_name, record_calls(attr))
     return module
 
 
@@ -76,7 +51,7 @@ def decorate_object(obj):
         return record_calls(obj)
     if inspect.isclass(obj):
         for name, attr in inspect.getmembers(obj):
-            if name in ("__repr__", "__str__"):
+            if is_property(name):
                 continue
 
             # Instance vs. Class Method
@@ -111,18 +86,32 @@ def record_calls(func):
         Returns:
             The output of the wrapped function.
         """
+        rnt = func(*args, **kwargs)
+
+        try:
+            rnt_str = str(rnt)
+        except:
+            rnt_str = "result not printable"
+
+        # some function may not have attribute __qualname__
+        # for example, numpy.random.rand
+        func_name = (
+            func.__qualname__ if hasattr(func, "__qualname__") else func.__name__
+        )
+        if is_property(func_name):
+            return rnt
 
         # Create a dictionary to store inputs and outputs
         call_data = {
-            "function": func.__qualname__,
+            "function": func_name,
             "inputs": process_args(func, *args, **kwargs),
-            "output": func(*args, **kwargs),
+            "output": rnt_str,
         }
 
         # Store the call data
         calls.append(call_data)
 
-        return call_data["output"]
+        return rnt
 
     return wrapper
 
@@ -135,7 +124,10 @@ def process_args(orig_func, *args, **kwargs):
     processed = {}
 
     # Get the function arguments and their names
-    args_names = inspect.getfullargspec(orig_func).args
+    try:
+        args_names = inspect.getfullargspec(orig_func).args
+    except TypeError:
+        args_names = ["arg" + str(i) for i in range(len(args))]
 
     # Handle *args and **kwargs
     if not args_names:
@@ -147,11 +139,18 @@ def process_args(orig_func, *args, **kwargs):
     processed: dict = {name: "[OPTIONAL ARG ABSENT]" for name in args_names}
 
     for i, arg in enumerate(args):
+        record_arg = None
+        # use match-case if wanted
         if isinstance(arg, (list, set)):
-            processed[args_names[i]] = list(arg)
+            record_arg = str(list(arg))
         elif isinstance(arg, dict):
-            processed[args_names[i]] = list(zip(arg.keys(), arg.values()))
+            record_arg = str(list(zip(arg.keys(), arg.values())))
         else:
-            processed[args_names[i]] = arg
+            record_arg = str(arg)
+        processed[args_names[i]] = str(record_arg)
 
     return processed
+
+
+def is_property(name):
+    return name.startswith("__") and name.endswith("__")

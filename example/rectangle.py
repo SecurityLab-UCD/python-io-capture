@@ -2,7 +2,7 @@
 The rectangle class which has height & width
 """
 
-import util
+from example import util
 
 
 class Rectangle:
