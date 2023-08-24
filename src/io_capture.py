@@ -23,16 +23,19 @@ def decorate_module(module):
         module: the module to be decorated
     """
 
-    try:
-        for name, value in inspect.getmembers(
-            module,
-            predicate=lambda e: inspect.isfunction(e) or inspect.isclass(e),
-        ):
-            module.__setattr__(name, decorate_object(value))  # pylint: disable=C2801
+    instrumented = set()
+    for name, value in inspect.getmembers(
+        module,
+        predicate=lambda e: inspect.isfunction(e) or inspect.isclass(e),
+    ):
+        module.__setattr__(name, decorate_object(value))  # pylint: disable=C2801
+        instrumented.add(name)
 
-    except ImportError as exc:
-        raise ImportError("Error Importing Module") from exc
-
+    # instrumented functions that are not covered by inspect.getmembers
+    for attr_name in dir(module):
+        attr = getattr(module, attr_name)
+        if callable(attr) and attr_name not in instrumented:
+            setattr(module, attr_name, record_calls(attr))
     return module
 
 
