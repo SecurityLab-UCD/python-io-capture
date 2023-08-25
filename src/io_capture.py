@@ -5,13 +5,16 @@ PEP-8 Conforming program to capture calls' IO across functions/class methods/inn
 
 import inspect
 import json
+from typing import Any
+from src.report_table import ReportTable, IOVector
 
-# List to store all the recorded function calls
-calls = []
+calls = ReportTable()
 
 
 def dump_records(file_path):
-    json.dump(calls, open(file_path, "w"), indent=4)
+    # json.dump(calls, open(file_path, "w"), indent=4)
+    with open(file_path, "w") as f:
+        f.write(str(calls))
     calls.clear()
 
 
@@ -101,22 +104,19 @@ def record_calls(func):
         if is_property(func_name):
             return rnt
 
-        # Create a dictionary to store inputs and outputs
-        call_data = {
-            "function": func_name,
-            "inputs": process_args(func, *args, **kwargs),
-            "output": rnt_str,
-        }
+        # store inputs and outputs
+        inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
+        outputs = [rnt_str]
 
         # Store the call data
-        calls.append(call_data)
+        calls.report(func_name, (IOVector(inputs), IOVector(outputs)))
 
         return rnt
 
     return wrapper
 
 
-def process_args(orig_func, *args, **kwargs):
+def process_args(orig_func, *args, **kwargs) -> dict[str, Any]:
     """
     Flattens composite args (if applicable)
     """
