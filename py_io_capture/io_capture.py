@@ -7,8 +7,9 @@ import inspect
 import json
 from typing import Any
 from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEncoder
+from py_io_capture.common import MAX_REPORT_SIZE
 
-calls = ReportTable()
+calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
 
 
 def dump_records(file_path):
