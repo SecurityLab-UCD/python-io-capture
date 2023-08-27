@@ -1,4 +1,5 @@
 from typing import List, Tuple, Dict, Set
+import json
 
 
 class IOVector(list[str]):
@@ -68,3 +69,17 @@ class ExecHashMap:
 
     def __repr__(self) -> str:
         return str(self.map)
+
+
+class ReportTableJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, ExecHashMap):
+            io_pairs = [[inputs, outputs] for inputs, outputs in obj.map.items()]
+            return io_pairs
+        elif isinstance(obj, IOVector):
+            return list(obj)
+        elif type(obj) is set and all(isinstance(item, IOVector) for item in obj):
+            return list(obj)
+        elif isinstance(obj, ReportTable):
+            return obj.table
+        return json.JSONEncoder.default(self, obj)

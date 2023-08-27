@@ -16,6 +16,7 @@ atexit.register(dump_records, "demo_dump.json")
 if __name__ == "__main__":
     # example projects
     example.main()
+    example.main()
 
     # real world projects
     xs = [1, 2, 3, 4, 5]

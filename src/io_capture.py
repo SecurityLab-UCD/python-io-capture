@@ -6,15 +6,13 @@ PEP-8 Conforming program to capture calls' IO across functions/class methods/inn
 import inspect
 import json
 from typing import Any
-from src.report_table import ReportTable, IOVector
+from src.report_table import ReportTable, IOVector, ReportTableJSONEncoder
 
 calls = ReportTable()
 
 
 def dump_records(file_path):
-    # json.dump(calls, open(file_path, "w"), indent=4)
-    with open(file_path, "w") as f:
-        f.write(str(calls))
+    json.dump(calls, open(file_path, "w"), indent=4, cls=ReportTableJSONEncoder)
     calls.clear()
 
 
