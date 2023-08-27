@@ -6,7 +6,7 @@ PEP-8 Conforming program to capture calls' IO across functions/class methods/inn
 import inspect
 import json
 from typing import Any
-from src.report_table import ReportTable, IOVector, ReportTableJSONEncoder
+from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEncoder
 
 calls = ReportTable()
 
