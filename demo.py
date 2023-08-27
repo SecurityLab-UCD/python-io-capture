@@ -3,7 +3,7 @@ import sys
 import numpy as np
 
 ###### lines to be added to fuzz_* scripts ###########
-from py_io_capture.io_capture import decorate_module, dump_records
+from py_io_capture import decorate_module, dump_records
 import atexit
 
 example = decorate_module(example)
