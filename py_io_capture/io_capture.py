@@ -108,7 +108,12 @@ def record_calls(func):
         outputs = [rnt_str]
 
         # Store the call data
-        calls.report(func_name, (IOVector(inputs), IOVector(outputs)))
+        try:
+            file_name = inspect.getfile(func)
+        except TypeError:
+            file_name = "unknown_file"
+
+        calls.report(f"{file_name}?{func_name}", (IOVector(inputs), IOVector(outputs)))
 
         return rnt
 
