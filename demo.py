@@ -3,18 +3,19 @@ import sys
 import numpy as np
 
 ###### lines to be added to fuzz_* scripts ###########
-from src.io_capture import decorate_module, dump_records
+from py_io_capture import decorate_module, dump_records, DUMP_FILE_NAME
 import atexit
 
 example = decorate_module(example)
 np = decorate_module(np)
 
 # todo: get dump file path from env variable
-atexit.register(dump_records, "demo_dump.json")
+atexit.register(dump_records, DUMP_FILE_NAME)
 ######################################################
 
 if __name__ == "__main__":
     # example projects
+    example.main()
     example.main()
 
     # real world projects

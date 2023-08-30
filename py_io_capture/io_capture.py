@@ -5,13 +5,15 @@ PEP-8 Conforming program to capture calls' IO across functions/class methods/inn
 
 import inspect
 import json
+from typing import Any
+from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEncoder
+from py_io_capture.common import MAX_REPORT_SIZE
 
-# List to store all the recorded function calls
-calls = []
+calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
 
 
 def dump_records(file_path):
-    json.dump(calls, open(file_path, "w"), indent=4)
+    json.dump(calls, open(file_path, "w"), indent=4, cls=ReportTableJSONEncoder)
     calls.clear()
 
 
@@ -101,22 +103,24 @@ def record_calls(func):
         if is_property(func_name):
             return rnt
 
-        # Create a dictionary to store inputs and outputs
-        call_data = {
-            "function": func_name,
-            "inputs": process_args(func, *args, **kwargs),
-            "output": rnt_str,
-        }
+        # store inputs and outputs
+        inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
+        outputs = [rnt_str]
 
         # Store the call data
-        calls.append(call_data)
+        try:
+            file_name = inspect.getfile(func)
+        except TypeError:
+            file_name = "unknown_file"
+
+        calls.report(f"{file_name}?{func_name}", (IOVector(inputs), IOVector(outputs)))
 
         return rnt
 
     return wrapper
 
 
-def process_args(orig_func, *args, **kwargs):
+def process_args(orig_func, *args, **kwargs) -> dict[str, Any]:
     """
     Flattens composite args (if applicable)
     """
