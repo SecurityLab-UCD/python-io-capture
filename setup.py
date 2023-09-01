@@ -17,7 +17,7 @@ setup(
     long_description_content_type="text/markdown",
     project_urls=PROJECT_URLS,
     author_email="yfhe@ucdavis.edu",
-    version="0.0.1.2",
+    version="0.0.1.3",
     packages=find_packages(),
-    python_requires=">=3.10",
+    python_requires=">=3.8",
 )
