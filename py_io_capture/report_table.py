@@ -2,7 +2,7 @@ from typing import List, Tuple, Dict, Set
 import json
 
 
-class IOVector(list[str]):
+class IOVector(list):
     def __init__(self, *args):
         super().__init__(*args)
 
