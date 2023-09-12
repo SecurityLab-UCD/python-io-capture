@@ -120,7 +120,7 @@ def record_calls(func):
     return wrapper
 
 
-def process_args(orig_func, *args, **kwargs) -> dict[str, Any]:
+def process_args(orig_func, *args, **kwargs):
     """
     Flattens composite args (if applicable)
     """
