@@ -97,14 +97,20 @@ def record_calls(func):
 
         # some function may not have attribute __qualname__
         # for example, numpy.random.rand
-        func_name = (
-            func.__qualname__ if hasattr(func, "__qualname__") else func.__name__
-        )
+        try:
+            func_name = (
+                func.__qualname__ if hasattr(func, "__qualname__") else func.__name__
+            )
+        except AttributeError:
+            func_name = str(func)
+
         if is_property(func_name):
             return rnt
 
         # store inputs and outputs
-        inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
+        # todo: fix process_args
+        # inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
+        inputs = ["try"] * 3
         outputs = [rnt_str]
 
         # Store the call data

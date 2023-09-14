@@ -1,13 +1,13 @@
 from example import example
 import sys
-import numpy as np
+from absl import flags
 
 ###### lines to be added to fuzz_* scripts ###########
 from py_io_capture import decorate_module, dump_records, DUMP_FILE_NAME
 import atexit
 
 example = decorate_module(example)
-np = decorate_module(np)
+flags = decorate_module(flags)
 
 # todo: get dump file path from env variable
 atexit.register(dump_records, DUMP_FILE_NAME)
@@ -20,5 +20,4 @@ if __name__ == "__main__":
 
     # real world projects
     xs = [1, 2, 3, 4, 5]
-    np.mean(xs)
-    np.sort(xs)
+    flags.FLAGS(sys.argv)
