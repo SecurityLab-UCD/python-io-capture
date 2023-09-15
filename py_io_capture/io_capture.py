@@ -7,7 +7,8 @@ import inspect
 import json
 from typing import Any
 from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEncoder
-from py_io_capture.common import MAX_REPORT_SIZE
+from py_io_capture.common import MAX_REPORT_SIZE, MAX_RECURRSION_LIMIT
+import sys
 
 calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
 
@@ -97,14 +98,20 @@ def record_calls(func):
 
         # some function may not have attribute __qualname__
         # for example, numpy.random.rand
-        func_name = (
-            func.__qualname__ if hasattr(func, "__qualname__") else func.__name__
-        )
+        try:
+            func_name = (
+                func.__qualname__ if hasattr(func, "__qualname__") else func.__name__
+            )
+        except AttributeError:
+            func_name = str(func)
+
         if is_property(func_name):
             return rnt
 
         # store inputs and outputs
+        # todo: fix process_args
         inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
+        # inputs = ["try"] * 3
         outputs = [rnt_str]
 
         # Store the call data
@@ -150,8 +157,15 @@ def process_args(orig_func, *args, **kwargs):
         elif isinstance(arg, dict):
             record_arg = str(list(zip(arg.keys(), arg.values())))
         else:
-            record_arg = str(arg)
-        processed[args_names[i]] = str(record_arg)
+            # use recursion limit to avoid infinite recursion stackoverflow
+            org_recursion_limit = sys.getrecursionlimit()
+            sys.setrecursionlimit(MAX_RECURRSION_LIMIT)
+            try:
+                record_arg = str(arg)
+            except RecursionError:
+                record_arg = "RecursionError: " + arg.__class__.__name__
+            sys.setrecursionlimit(org_recursion_limit)
+        processed[args_names[i]] = record_arg
 
     return processed
 
