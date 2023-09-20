@@ -7,7 +7,7 @@ import inspect
 import json
 from typing import Any
 from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEncoder
-from py_io_capture.common import MAX_REPORT_SIZE, MAX_RECURRSION_LIMIT
+from py_io_capture.common import MAX_REPORT_SIZE, MAX_RECURRSION_LIMIT, PythonReportError
 import sys
 
 calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
@@ -94,7 +94,7 @@ def record_calls(func):
         try:
             rnt_str = str(rnt)
         except:
-            rnt_str = "result not printable"
+            rnt_str = PythonReportError.UNABLE_TO_STRINGIFY
 
         # some function may not have attribute __qualname__
         # for example, numpy.random.rand
@@ -109,16 +109,15 @@ def record_calls(func):
             return rnt
 
         # store inputs and outputs
-        # todo: fix process_args
+        # todo: fix process_args str() recursion error
         inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
-        # inputs = ["try"] * 3
         outputs = [rnt_str]
 
         # Store the call data
         try:
             file_name = inspect.getfile(func)
         except TypeError:
-            file_name = "unknown_file"
+            file_name = PythonReportError.UNKNOWN_FILE
 
         calls.report(f"{file_name}?{func_name}", (IOVector(inputs), IOVector(outputs)))
 
@@ -147,7 +146,7 @@ def process_args(orig_func, *args, **kwargs):
             processed.update(kwargs)
         return processed
 
-    processed: dict = {name: "[OPTIONAL ARG ABSENT]" for name in args_names}
+    processed: dict = {name: PythonReportError.OPTIONAL_ARG_ABSENT  for name in args_names}
 
     for i, arg in enumerate(args):
         record_arg = None
@@ -163,7 +162,7 @@ def process_args(orig_func, *args, **kwargs):
             try:
                 record_arg = str(arg)
             except RecursionError:
-                record_arg = "RecursionError: " + arg.__class__.__name__
+                record_arg = PythonReportError.RECURSION_LIMIT_EXCEEDED
             sys.setrecursionlimit(org_recursion_limit)
         processed[args_names[i]] = record_arg
 

@@ -81,5 +81,8 @@ class ReportTableJSONEncoder(json.JSONEncoder):
         elif type(obj) is set and all(isinstance(item, IOVector) for item in obj):
             return list(obj)
         elif isinstance(obj, ReportTable):
-            return obj.table
+            return [
+                {func_name: exec_hash_map}
+                for func_name, exec_hash_map in obj.table.items()
+            ]
         return json.JSONEncoder.default(self, obj)
