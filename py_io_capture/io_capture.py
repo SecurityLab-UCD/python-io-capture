@@ -7,7 +7,11 @@ import inspect
 import json
 from typing import Any
 from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEncoder
-from py_io_capture.common import MAX_REPORT_SIZE, MAX_RECURRSION_LIMIT, PythonReportError
+from py_io_capture.common import (
+    MAX_REPORT_SIZE,
+    MAX_RECURRSION_LIMIT,
+    PythonReportError,
+)
 import sys
 
 calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
@@ -25,6 +29,9 @@ def decorate_module(module):
     Args:
         module: the module to be decorated
     """
+
+    if callable(module) or inspect.isfunction(module):
+        return record_calls(module)
 
     instrumented = set()
     for name, value in inspect.getmembers(
@@ -134,10 +141,12 @@ def process_args(orig_func, *args, **kwargs):
     processed = {}
 
     # Get the function arguments and their names
-    try:
-        args_names = inspect.getfullargspec(orig_func).args
-    except TypeError:
-        args_names = ["arg" + str(i) for i in range(len(args))]
+    # note: inspect.getfullargspec(func).args sometimes give incorrect number of args
+    # i.e. len(args_names) != len(args)
+    # try:
+    #     args_names = inspect.getfullargspec(orig_func).args
+    # except TypeError:
+    args_names = ["arg" + str(i) for i in range(len(args))]
 
     # Handle *args and **kwargs
     if not args_names:
@@ -146,8 +155,9 @@ def process_args(orig_func, *args, **kwargs):
             processed.update(kwargs)
         return processed
 
-    processed: dict = {name: PythonReportError.OPTIONAL_ARG_ABSENT  for name in args_names}
-
+    processed: dict = {
+        name: PythonReportError.OPTIONAL_ARG_ABSENT for name in args_names
+    }
     for i, arg in enumerate(args):
         record_arg = None
         # use match-case if wanted

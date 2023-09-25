@@ -5,3 +5,6 @@ gTTS>=2.0.1
 pytesseract>=0.2.4
 absl-py>=1.4.0
 StrEnum>=0.4.15
+charset_normalizer>=3.2.0
+et-xmlfile>=1.1.0
+docutils>=0.20.1
