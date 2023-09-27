@@ -13,6 +13,7 @@ from py_io_capture.common import (
     PythonReportError,
 )
 import sys
+import re
 
 calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
 instance_tracker: dict[int, tuple[Any, ...]] = {}
@@ -21,6 +22,7 @@ instance_tracker: dict[int, tuple[Any, ...]] = {}
 def dump_records(file_path):
     json.dump(calls, open(file_path, "w"), indent=4, cls=ReportTableJSONEncoder)
     calls.clear()
+    print(instance_tracker)
 
 
 def decorate_module(module):
@@ -121,6 +123,11 @@ def record_calls(func):
         inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
         outputs = [rnt_str]
 
+        # Store the class name and args for class instance initialization
+        if "__init__" in func_name:
+            class_name = re.match(r"(.*).__init__", func_name).group(1)
+            instance_tracker[id(args[0])] = (class_name, inputs[1:])
+            
         # Store the call data
         try:
             file_name = inspect.getfile(func)
@@ -161,7 +168,6 @@ def process_args(orig_func, *args, **kwargs):
     }
     for i, arg in enumerate(args):
         record_arg = None
-        # use match-case if wanted
         if isinstance(arg, (list, set)):
             record_arg = str(list(arg))
         elif isinstance(arg, dict):
@@ -175,10 +181,33 @@ def process_args(orig_func, *args, **kwargs):
             except RecursionError:
                 record_arg = PythonReportError.RECURSION_LIMIT_EXCEEDED
             sys.setrecursionlimit(org_recursion_limit)
+
+        if is_class_instance(record_arg):
+            if id(arg) in instance_tracker:
+                class_record = instance_tracker[id(arg)]
+                class_name = class_record[0]
+                args = class_record[1]
+                record_arg = f"{class_name}({', '.join(args)})"
         processed[args_names[i]] = record_arg
 
     return processed
 
 
 def is_property(name):
-    return name.startswith("__") and name.endswith("__")
+    whitelist = ["__init__", "__setattr__"]
+    return name.startswith("__") and name.endswith("__") and name not in whitelist
+
+
+def is_class_instance(value: str) -> bool:
+    """check if a value is a class instance in Python.
+    We consider only a object <class_name object at 0xsome_address> as class instance
+
+    Args:
+        value (str): a reported value string
+
+    Returns:
+        bool: True if the value is an instance of some class, False otherwise
+    """
+    pattern = r"<([^}]*) object at 0x([0-9a-fA-F]{12})>"
+    match = re.match(pattern, value)
+    return bool(match)
