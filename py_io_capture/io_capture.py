@@ -15,6 +15,7 @@ from py_io_capture.common import (
 import sys
 
 calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
+instance_tracker: dict[int, tuple[Any, ...]] = {}
 
 
 def dump_records(file_path):
