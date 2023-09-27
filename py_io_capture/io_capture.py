@@ -22,7 +22,6 @@ instance_tracker: dict[int, tuple[Any, ...]] = {}
 def dump_records(file_path):
     json.dump(calls, open(file_path, "w"), indent=4, cls=ReportTableJSONEncoder)
     calls.clear()
-    print(instance_tracker)
 
 
 def decorate_module(module):
@@ -134,6 +133,11 @@ def record_calls(func):
         except TypeError:
             file_name = PythonReportError.UNKNOWN_FILE
 
+        # check if any of the input is unexpected class instance
+        # todo: find why there are unexpected class instances
+        if any(val == PythonReportError.UNEXPECTED_CLASS_INSTANCE for val in inputs):
+            return rnt
+
         calls.report(f"{file_name}?{func_name}", (IOVector(inputs), IOVector(outputs)))
 
         return rnt
@@ -188,6 +192,8 @@ def process_args(orig_func, *args, **kwargs):
                 class_name = class_record[0]
                 args = class_record[1]
                 record_arg = f"{class_name}({', '.join(args)})"
+            else:
+                record_arg = PythonReportError.UNEXPECTED_CLASS_INSTANCE
         processed[args_names[i]] = record_arg
 
     return processed
