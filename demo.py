@@ -5,6 +5,7 @@ from charset_normalizer import from_bytes
 from et_xmlfile import xmlfile
 from io import BytesIO
 from docutils import parsers, frontend, utils, ApplicationError
+import chardet
 
 ###### lines to be added to fuzz_* scripts ###########
 from py_io_capture import decorate_module, dump_records, DUMP_FILE_NAME
@@ -17,6 +18,7 @@ parsers = decorate_module(parsers)
 utils = decorate_module(utils)
 frontend = decorate_module(frontend)
 person = decorate_module(person)
+chardet = decorate_module(chardet)
 
 atexit.register(dump_records, DUMP_FILE_NAME)
 ######################################################
@@ -37,8 +39,12 @@ if __name__ == "__main__":
     # except ApplicationError:
     #     pass
 
-    john = person.Person("John", 25)
-    assert john.introduce() == "Hi, my name is John and I am 25 years old."
-
-    john.name = "Alice"
-    assert john.introduce() == "Hi, my name is Alice and I am 25 years old."
+    bob = person.Person("Bob", 42)
+    g1 = bob.introduce()
+    
+    bob.age = 43
+    g2 = bob.introduce()
+    
+    chardet.detect(b"abcdefg")
+    chardet.detect(b"1234567")
+    
