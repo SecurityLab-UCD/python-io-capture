@@ -24,20 +24,20 @@ atexit.register(dump_records, DUMP_FILE_NAME)
 ######################################################
 
 if __name__ == "__main__":
-    # from_bytes(b"\\x01\\x00\\xff\\x9b")
-    # f2 = BytesIO()
-    # with xmlfile(f2) as xf:
-    #     pass
-    # rst_parser_class = parsers.get_parser_class('rst')
-    # parser = rst_parser_class()
-    # document = utils.new_document(
-    #     "abcdefg",
-    #     frontend.get_default_settings(parser)
-    # )
-    # try:
-    #     parser.parse("abcdefg", document)
-    # except ApplicationError:
-    #     pass
+    from_bytes(b"\\x01\\x00\\xff\\x9b")
+    f2 = BytesIO()
+    with xmlfile(f2) as xf:
+        pass
+    rst_parser_class = parsers.get_parser_class('rst')
+    parser = rst_parser_class()
+    document = utils.new_document(
+        "abcdefg",
+        frontend.get_default_settings(parser)
+    )
+    try:
+        parser.parse("abcdefg", document)
+    except ApplicationError:
+        pass
 
     bob = person.Person("Bob", 42)
     g1 = bob.introduce()
