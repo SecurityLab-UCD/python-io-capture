@@ -192,13 +192,13 @@ def process_args(orig_func, *args, **kwargs):
             record_arg = str(list(zip(arg.keys(), arg.values())))
         else:
             # use recursion limit to avoid infinite recursion stackoverflow
-            # org_recursion_limit = sys.getrecursionlimit()
-            # sys.setrecursionlimit(MAX_RECURRSION_LIMIT)
-            # try:
-            record_arg = str(arg)
-            # except RecursionError:
-            #     record_arg = PythonReportError.RECURSION_LIMIT_EXCEEDED
-            # sys.setrecursionlimit(org_recursion_limit)
+            org_recursion_limit = sys.getrecursionlimit()
+            sys.setrecursionlimit(MAX_RECURRSION_LIMIT)
+            try:
+                record_arg = str(arg)
+            except RecursionError:
+                record_arg = PythonReportError.RECURSION_LIMIT_EXCEEDED
+            sys.setrecursionlimit(org_recursion_limit)
 
         if is_class_instance(record_arg):
             record_arg = obj2constructor(arg)
