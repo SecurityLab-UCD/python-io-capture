@@ -1,6 +1,7 @@
 from example import example
 from example import person
 import sys
+import charset_normalizer
 from charset_normalizer import from_bytes
 from et_xmlfile import xmlfile
 from io import BytesIO
@@ -12,6 +13,7 @@ from py_io_capture import decorate_module, dump_records, DUMP_FILE_NAME
 from py_io_capture.io_capture import record_calls
 import atexit
 
+charset_normalizer = decorate_module(charset_normalizer)
 from_bytes = decorate_module(from_bytes)
 xmlfile = decorate_module(xmlfile)
 parsers = decorate_module(parsers)
