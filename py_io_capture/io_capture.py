@@ -16,7 +16,7 @@ import sys
 import re
 
 calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
-instance_tracker: dict[int, tuple[str, list]] = {}  # {id(obj): (class_name, args)}
+instance_tracker = {}  #: dict[int, tuple[str, list]] {id(obj): (class_name, args)}
 
 
 def dump_records(file_path):
