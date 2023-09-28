@@ -31,7 +31,9 @@ class ReportTable:
     def report(self, func_name: str, io: IOPair):
         if func_name not in self.table:
             self.table[func_name] = ExecHashMap()
-        self.table[func_name].insert(io)
+
+        if len(self.table[func_name]) < self.max_output_len:
+            self.table[func_name].insert(io)
 
     def clear(self):
         self.table.clear()
