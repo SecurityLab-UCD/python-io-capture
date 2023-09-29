@@ -190,6 +190,8 @@ def process_args(orig_func, *args, **kwargs):
             record_arg = str(list(arg))
         elif isinstance(arg, dict):
             record_arg = str(list(zip(arg.keys(), arg.values())))
+        elif isinstance(arg, str):
+            record_arg = f"\'{str(arg)}\'"
         else:
             # use recursion limit to avoid infinite recursion stackoverflow
             org_recursion_limit = sys.getrecursionlimit()
