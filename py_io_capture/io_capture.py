@@ -10,12 +10,13 @@ from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEnc
 from py_io_capture.common import (
     MAX_REPORT_SIZE,
     MAX_RECURRSION_LIMIT,
+    MAX_IO_PAIR,
     PythonReportError,
 )
 import sys
 import re
 
-calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
+calls = ReportTable(max_output_len=MAX_REPORT_SIZE, max_io_pair=MAX_IO_PAIR)
 instance_tracker = {}  #: dict[int, tuple[str, list]] {id(obj): (class_name, args)}
 
 
@@ -191,7 +192,7 @@ def process_args(orig_func, *args, **kwargs):
         elif isinstance(arg, dict):
             record_arg = str(list(zip(arg.keys(), arg.values())))
         elif isinstance(arg, str):
-            record_arg = f"\'{str(arg)}\'"
+            record_arg = f"'{str(arg)}'"
         else:
             # use recursion limit to avoid infinite recursion stackoverflow
             org_recursion_limit = sys.getrecursionlimit()
