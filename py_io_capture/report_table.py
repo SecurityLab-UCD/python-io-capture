@@ -24,14 +24,19 @@ IOPair = Tuple[IOVector, IOVector]
 
 
 class ReportTable:
-    def __init__(self, max_output_len: int = 5):
+    def __init__(self, max_output_len: int = 5, max_io_pair: int = 5):
         self.max_output_len = max_output_len
+        self.max_io_pair = max_io_pair
         self.table: Dict[str, ExecHashMap] = {}
 
     def report(self, func_name: str, io: IOPair):
         if func_name not in self.table:
             self.table[func_name] = ExecHashMap()
-        self.table[func_name].insert(io)
+
+        # since we need to cover more function but less io pairs for each function
+        # we need to check the size of the io pair set
+        if len(self.table[func_name]) < self.max_io_pair:
+            self.table[func_name].insert(io)
 
     def clear(self):
         self.table.clear()

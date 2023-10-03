@@ -10,11 +10,14 @@ from py_io_capture.report_table import ReportTable, IOVector, ReportTableJSONEnc
 from py_io_capture.common import (
     MAX_REPORT_SIZE,
     MAX_RECURRSION_LIMIT,
+    MAX_IO_PAIR,
     PythonReportError,
 )
 import sys
+import re
 
-calls = ReportTable(max_output_len=MAX_REPORT_SIZE)
+calls = ReportTable(max_output_len=MAX_REPORT_SIZE, max_io_pair=MAX_IO_PAIR)
+instance_tracker = {}  #: dict[int, tuple[str, list]] {id(obj): (class_name, args)}
 
 
 def dump_records(file_path):
@@ -99,7 +102,15 @@ def record_calls(func):
         rnt = func(*args, **kwargs)
 
         try:
-            rnt_str = str(rnt)
+            if isinstance(rnt, set):
+                rnt_str = set(map(str, rnt))
+                for i in range(len(rnt_str)):
+                    if is_class_instance(rnt_str[i]):
+                        rnt_str[i] = obj2constructor(rnt_str[i])
+            else:
+                rnt_str = str(rnt)
+                if is_class_instance(rnt_str):
+                    rnt_str = obj2constructor(rnt)
         except:
             rnt_str = PythonReportError.UNABLE_TO_STRINGIFY
 
@@ -120,13 +131,29 @@ def record_calls(func):
         inputs = [str(value) for value in process_args(func, *args, **kwargs).values()]
         outputs = [rnt_str]
 
+        # Store the class name and args for class instance initialization
+        if "__init__" in func_name:
+            class_name = re.match(r"(.*).__init__", func_name).group(1)
+            instance_tracker[id(args[0])] = (class_name, inputs[1:])
+
         # Store the call data
         try:
             file_name = inspect.getfile(func)
         except TypeError:
             file_name = PythonReportError.UNKNOWN_FILE
 
-        calls.report(f"{file_name}?{func_name}", (IOVector(inputs), IOVector(outputs)))
+        # check if any of the input is unexpected class instance
+        # todo: find why there are unexpected class instances
+        if any(
+            val == PythonReportError.UNEXPECTED_CLASS_INSTANCE
+            for val in inputs + outputs
+        ):
+            return rnt
+
+        if "__init__" not in func_name:
+            calls.report(
+                f"{file_name}?{func_name}", (IOVector(inputs), IOVector(outputs))
+            )
 
         return rnt
 
@@ -160,11 +187,12 @@ def process_args(orig_func, *args, **kwargs):
     }
     for i, arg in enumerate(args):
         record_arg = None
-        # use match-case if wanted
         if isinstance(arg, (list, set)):
             record_arg = str(list(arg))
         elif isinstance(arg, dict):
             record_arg = str(list(zip(arg.keys(), arg.values())))
+        elif isinstance(arg, str):
+            record_arg = f"'{str(arg)}'"
         else:
             # use recursion limit to avoid infinite recursion stackoverflow
             org_recursion_limit = sys.getrecursionlimit()
@@ -174,10 +202,41 @@ def process_args(orig_func, *args, **kwargs):
             except RecursionError:
                 record_arg = PythonReportError.RECURSION_LIMIT_EXCEEDED
             sys.setrecursionlimit(org_recursion_limit)
+
+        if is_class_instance(record_arg):
+            record_arg = obj2constructor(arg)
         processed[args_names[i]] = record_arg
 
     return processed
 
 
 def is_property(name):
-    return name.startswith("__") and name.endswith("__")
+    whitelist = ["__init__", "__setattr__"]
+    return name.startswith("__") and name.endswith("__") and name not in whitelist
+
+
+def is_class_instance(value: str) -> bool:
+    """check if a value is a class instance in Python.
+    We consider only a object <class_name object at 0xsome_address> as class instance
+
+    Args:
+        value (str): a reported value string
+
+    Returns:
+        bool: True if the value is an instance of some class, False otherwise
+    """
+    pattern = r"<([^}]*) object at 0x([0-9a-fA-F]{12})>"
+    match = re.match(pattern, value)
+    return bool(match)
+
+
+def obj2constructor(obj: Any) -> str:
+    if id(obj) in instance_tracker:
+        class_record = instance_tracker[id(obj)]
+        class_name = class_record[0]
+        args = class_record[1]
+        obj_str = f"{class_name}({', '.join(args)})"
+    else:
+        obj_str = PythonReportError.UNEXPECTED_CLASS_INSTANCE
+
+    return obj_str
